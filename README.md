@@ -6,7 +6,8 @@ A simple VRChat OSC application designed for use with KillFrenzy Avatar Text
 https://github.com/killfrenzy96/KillFrenzyAvatarText
 
 # Installation
-1. Download the app from the releases
+1. Download the app from the releases\
 https://github.com/killfrenzy96/KatOscApp/releases
-2. Run the app and make sure OSC is enabled in-game
+
+2. Run the app and make sure OSC is enabled in-game\
 ![EnableOSC](/Images/EnableOSC.gif)
