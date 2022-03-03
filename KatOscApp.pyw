@@ -18,7 +18,6 @@
 from threading import Timer
 from pythonosc import udp_client
 from tkinter import *
-from tkinter import ttk
 import math
 
 class KatOscApp:
