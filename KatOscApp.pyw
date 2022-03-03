@@ -19,7 +19,7 @@ from threading import Timer
 from pythonosc import udp_client
 from tkinter import *
 import math
-import sys
+import sys, os
 
 class KatOscApp:
 	def __init__(self):
@@ -275,7 +275,12 @@ class KatOscApp:
 		window.geometry("630x214")
 		window.configure(bg = "#333")
 		window.resizable(False, False)
-		window.iconbitmap(sys.argv[0])
+
+		filepath = sys.argv[0]
+		try:
+			window.iconbitmap(filepath)
+		except:
+			print("Warning: Could not load icon from " + filepath)
 
 		# Create text box
 		global full
