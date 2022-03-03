@@ -2,3 +2,8 @@ __pycache__/
 build/
 dist/
 *.spec
+KatOscApp.build
+KatOscApp.exe
+KatOscApp.cmd
+build.bat
+build.sh
