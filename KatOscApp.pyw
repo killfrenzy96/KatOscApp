@@ -40,6 +40,8 @@ class KatOscApp:
 		self.osc_prefix = "/avatar/parameters/"
 		self.osc_text = ""
 
+		self.invalid_char = "?" # character used to replace invalid characters
+
 		self.keys = {
 			" ": 0,
 			"!": 1,
@@ -267,6 +269,9 @@ class KatOscApp:
 			"°": 255
 		}
 
+		# Character to use in place of unknown characters
+		self.invalid_char_value = self.keys.get(self.invalid_char, 0)
+
 		# --------------
 		# GUI Setup
 		# --------------
@@ -383,12 +388,8 @@ class KatOscApp:
 						index = (pointer_index * self.sync_params) + char_index
 						gui_char = gui_text[index]
 
-						# Convert character to the key value
-						key = 0
-						if gui_char in self.keys.keys():
-							key = self.keys[gui_char]
-						else:
-							key = self.keys[" "] # Invalid character, replace with a space
+						# Convert character to the key value, replace invalid characters
+						key = self.keys.get(gui_char, self.invalid_char_value) 
 
 						# Calculate character float value for OSC
 						value = float(key)
@@ -405,11 +406,7 @@ class KatOscApp:
 
 	# Combines an array of strings into a single string
 	def list_to_string(self, string: str):
-		new_string = ""
-		for x in string:
-			new_string += x
-		return new_string
-
+		return "".join(string)
 
 	# Limits the text length of the text box
 	def limit_text_length(self, *args):
