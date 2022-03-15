@@ -22,7 +22,7 @@ import sys
 import katosc
 
 class KatOscApp:
-	def __init__(self):		
+	def __init__(self):
 		self.kat = katosc.KatOsc()
 		self.text_length = 128
 		self.line_length = 32
@@ -78,6 +78,7 @@ class KatOscApp:
 		# Stop App
 		self.kat.stop()
 
+
 	# Set the text to any value
 	def set_text(self, text: str):
 		self.kat.set_text(text)
@@ -86,6 +87,7 @@ class KatOscApp:
 		self.gui_text.insert(1.0, text)
 		self._limit_text_length()
 		self.gui_text.focus_set()
+
 
 	# Limits the text length of the text box
 	def _limit_text_length(self, *args):
@@ -112,13 +114,15 @@ class KatOscApp:
 		if length_padded >= self.text_length:
 			self.gui_text.delete("end-" + str(length_padded - self.text_length + 1) + "c", "end")
 
-		# Send text 
+		# Send text
 		self.kat.set_text(self.gui_text.get(1.0, "end"))
+
 
 	# Gets the effective padded length of a line
 	def _get_padded_length(self, text: str):
 		lines = max(math.ceil(len(text) / self.line_length), 1)
 		return self.line_length * lines
+
 
 if __name__ == "__main__":
 	kat_osc_app = KatOscApp()
