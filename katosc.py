@@ -20,22 +20,39 @@ from pythonosc import udp_client, osc_server, dispatcher
 import math, asyncio, threading
 
 
-class KatOsc:
-	def __init__(self, enable_server = True):
+class KatOscConfig:
+	def __init__(self):
 		self.osc_ip = "127.0.0.1" # OSC network IP
 		self.osc_port = 9000 # OSC network port for sending messages
 
-		self.osc_enable_server = enable_server # Used to improve sync with in-game avatar
+		self.osc_enable_server = True # Used to improve sync with in-game avatar and autodetect sync parameter count used for the avatar.
 		self.osc_server_ip = "127.0.0.1" # OSC server IP to listen too
 		self.osc_server_port = 9001 # OSC network port for recieving messages
 
 		self.osc_delay = 0.25 # Delay between network updates in seconds. Setting this too low will cause issues.
+		self.sync_params = 4 # Default sync parameters. This is automatically updated if the OSC server is enabled.
 
-		self.text_length = 128 # Maximum length of text
-		self.sync_params = 4 # Default/current sync parameters
-		self.sync_params_max = 8 # Maximum sync parameters
 		self.line_length = 32 # Characters per line of text
 		self.line_count = 4 # Maximum lines of text
+
+
+class KatOsc:
+	def __init__(self, config: KatOscConfig = KatOscConfig()):
+		self.osc_ip = config.osc_ip
+		self.osc_port = config.osc_port
+
+		self.osc_enable_server = config.osc_enable_server
+		self.osc_server_ip = config.osc_server_ip
+		self.osc_server_port = config.osc_server_port
+
+		self.osc_delay = config.osc_delay
+		self.sync_params = config.sync_params
+
+		self.line_length = config.line_length
+		self.line_count = config.line_count
+
+		self.text_length = 128 # Maximum length of text
+		self.sync_params_max = 8 # Maximum sync parameters
 
 		self.pointer_count = int(self.text_length / self.sync_params)
 		self.pointer_clear = 255
@@ -50,7 +67,6 @@ class KatOsc:
 		self.osc_avatar_change_path = "/avatar/change"
 		self.osc_text = ""
 		self.target_text = ""
-
 
 		self.invalid_char = "?" # character used to replace invalid characters
 

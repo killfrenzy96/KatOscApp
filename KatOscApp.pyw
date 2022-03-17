@@ -24,9 +24,9 @@ import katosc
 class KatOscApp:
 	def __init__(self):
 		self.kat = katosc.KatOsc()
-		self.text_length = 128
-		self.line_length = 32
-		self.line_count = 4
+		self.text_length = self.kat.text_length
+		self.line_length = self.kat.line_length
+		self.line_count = self.kat.line_count
 
 		# --------------
 		# GUI Setup
