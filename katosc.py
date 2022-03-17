@@ -347,6 +347,8 @@ class KatOsc:
 
 				elif self.osc_server_test_step == 3:
 					# Finish the parameter sync test
+					if self.sync_params == 0:
+						self.sync_params = 4 # Test failed, assume default of 4 params
 					self.pointer_count = int(self.text_length / self.sync_params)
 					self.osc_server_test_step = 0
 					self.osc_text = " ".ljust(self.text_length) # Resync letters
