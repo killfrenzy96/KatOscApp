@@ -315,15 +315,17 @@ class KatOsc:
 
 		# Setup OSC Server
 		if self.osc_enable_server:
-			self.osc_server_test_step = 1
-			self.sync_params = 0
+			try:
+				self.osc_server_test_step = 1
 
-			self.osc_dispatcher = dispatcher.Dispatcher()
-			self.osc_dispatcher.map(self.osc_parameter_prefix + self.param_sync + "*", self.osc_server_handler_char)
-			self.osc_dispatcher.map(self.osc_avatar_change_path + "*", self.osc_server_handler_avatar)
+				self.osc_dispatcher = dispatcher.Dispatcher()
+				self.osc_dispatcher.map(self.osc_parameter_prefix + self.param_sync + "*", self.osc_server_handler_char)
+				self.osc_dispatcher.map(self.osc_avatar_change_path + "*", self.osc_server_handler_avatar)
 
-			self.osc_server = osc_server.ThreadingOSCUDPServer((self.osc_server_ip, self.osc_server_port), self.osc_dispatcher, asyncio.get_event_loop())
-			threading.Thread(target = self.osc_server_start, daemon = True).start()
+				self.osc_server = osc_server.ThreadingOSCUDPServer((self.osc_server_ip, self.osc_server_port), self.osc_dispatcher, asyncio.get_event_loop())
+				threading.Thread(target = self.osc_server_start, daemon = True).start()
+			except:
+				self.osc_server_test_step = 0
 
 		# Start timer loop
 		self.osc_timer.start()
