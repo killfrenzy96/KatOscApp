@@ -325,6 +325,7 @@ class KatOsc:
 				self.osc_server = osc_server.ThreadingOSCUDPServer((self.osc_server_ip, self.osc_server_port), self.osc_dispatcher, asyncio.get_event_loop())
 				threading.Thread(target = self.osc_server_start, daemon = True).start()
 			except:
+				self.osc_enable_server = False
 				self.osc_server_test_step = 0
 
 		# Start timer loop
