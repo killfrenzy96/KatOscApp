@@ -52,10 +52,12 @@ class KatOsc:
 		self.line_count = config.line_count
 
 		self.text_length = 128 # Maximum length of text
-		self.sync_params_max = 8 # Maximum sync parameters
+		self.sync_params_max = 16 # Maximum sync parameters
+		self.sync_params_last = 4 # Last detected sync parameters
 
 		self.pointer_count = int(self.text_length / self.sync_params)
 		self.pointer_clear = 255
+		self.pointer_index_resync = 0
 
 		self.sync_params_test_char_value = 97 # Character value to use when testing sync parameters
 
@@ -365,9 +367,18 @@ class KatOsc:
 					return
 
 				elif self.osc_server_test_step == 3:
+					# Set characters back to 0
+					for char_index in range(self.sync_params_max):
+						self.osc_client.send_message(self.osc_parameter_prefix + self.param_sync + str(char_index), 0.0)
+					self.osc_server_test_step = 4
+					return
+
+				elif self.osc_server_test_step == 4:
 					# Finish the parameter sync test
 					if self.sync_params == 0:
-						self.sync_params = 4 # Test failed, assume default of 4 params
+						self.sync_params = self.sync_params_last # Test failed, reuse last detected param count
+					else:
+						self.sync_params_last = self.sync_params
 					self.pointer_count = int(self.text_length / self.sync_params)
 					self.osc_server_test_step = 0
 					self.osc_text = " ".ljust(self.text_length) # Resync letters
@@ -410,27 +421,16 @@ class KatOsc:
 						break
 
 				if equal == False: # Characters not equal, need to sync this pointer position
-					self.osc_client.send_message(self.osc_parameter_prefix + self.param_pointer, pointer_index + 1) # Set pointer position
-
-					# Loop through characters within this pointer and set them
-					for char_index in range(self.sync_params):
-						index = (pointer_index * self.sync_params) + char_index
-						gui_char = gui_text[index]
-
-						# Convert character to the key value, replace invalid characters
-						key = self.keys.get(gui_char, self.invalid_char_value)
-
-						# Calculate character float value for OSC
-						value = float(key)
-						if value > 127.5:
-							value = value - 256.0
-						value = value / 127.0
-
-						self.osc_client.send_message(self.osc_parameter_prefix + self.param_sync + str(char_index), value)
-						osc_chars[index] = gui_char # Apply changes to the networked value
-
-					self.osc_text = self._list_to_string(osc_chars)
+					self.osc_update_pointer(pointer_index, gui_text, osc_chars)
 					return
+
+		# No updates required, use time to resync text
+		self.pointer_index_resync = self.pointer_index_resync + 1
+		if self.pointer_index_resync >= self.pointer_count:
+			self.pointer_index_resync = 0
+
+		pointer_index = self.pointer_index_resync
+		self.osc_update_pointer(pointer_index, gui_text, osc_chars)
 
 
 	# Starts the OSC server
@@ -448,6 +448,30 @@ class KatOsc:
 	# Handle OSC server to retest sync on avatar change
 	def osc_server_handler_avatar(self, address, value, *args):
 		self.osc_server_test_step = 1
+
+
+	# Updates the characters within a pointer
+	def osc_update_pointer(self, pointer_index, gui_text, osc_chars):
+		self.osc_client.send_message(self.osc_parameter_prefix + self.param_pointer, pointer_index + 1) # Set pointer position
+
+		# Loop through characters within this pointer and set them
+		for char_index in range(self.sync_params):
+			index = (pointer_index * self.sync_params) + char_index
+			gui_char = gui_text[index]
+
+			# Convert character to the key value, replace invalid characters
+			key = self.keys.get(gui_char, self.invalid_char_value)
+
+			# Calculate character float value for OSC
+			value = float(key)
+			if value > 127.5:
+				value = value - 256.0
+			value = value / 127.0
+
+			self.osc_client.send_message(self.osc_parameter_prefix + self.param_sync + str(char_index), value)
+			osc_chars[index] = gui_char # Apply changes to the networked value
+
+		self.osc_text = self._list_to_string(osc_chars)
 
 
 	# Combines an array of strings into a single string
