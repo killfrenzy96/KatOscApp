@@ -15,7 +15,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
-from tkinter import Tk, Text, Button
+from tkinter import Label, Tk, Text, Button, OptionMenu, StringVar
 import math
 import sys
 
@@ -23,6 +23,9 @@ import katosc
 
 class KatOscApp:
 	def __init__(self):
+		# kat_config = katosc.KatOscConfig()
+		# kat_config.osc_enable_server = False
+
 		self.kat = katosc.KatOsc()
 		self.text_length = self.kat.text_length
 		self.line_length = self.kat.line_length
@@ -32,7 +35,7 @@ class KatOscApp:
 		# GUI Setup
 		# --------------
 		self.window = window = Tk()
-		window.title("KillFrenzy Avatar Text OSC v1.2.2")
+		window.title("KillFrenzy Avatar Text OSC v1.2.3")
 		window.geometry("630x214")
 		window.configure(bg = "#333")
 		window.resizable(False, False)
@@ -60,6 +63,44 @@ class KatOscApp:
 		self.gui_text.grid(column = 0, row = 1, padx = 10, pady = 10)
 		self.gui_text.bind_all('<Key>', self._limit_text_length)
 
+		# Create sync parameter label
+		self.gui_syncparams_label = Label(window,
+			text = "Sync Parameters",
+			border = 3,
+			fg = "#ddd",
+			bg = "#393939",
+			width = 16,
+			height = 2
+		)
+		self.gui_syncparams_label.grid(column = 0, row = 2, padx = 10, pady = 0, sticky = "nw")
+
+		# Create sync parameter options
+		self.gui_syncparams_options = ["Auto", "1", "2", "4", "8", "16"]
+		self.gui_syncparams_value = StringVar(window)
+		self.gui_syncparams_value.set("Auto") # initial value
+
+		def gui_syncparams_callback(*args):
+			self.set_sync_params(self.gui_syncparams_value.get())
+		self.gui_syncparams_value.trace("w", gui_syncparams_callback)
+
+		self.gui_syncparams = OptionMenu(window,
+			self.gui_syncparams_value,
+			"Auto", "1", "2", "4", "8", "16"
+		)
+		self.gui_syncparams.config(
+			indicatoron = 0,
+			border = 0,
+			highlightthickness = 0,
+			fg = "#ddd",
+			bg = "#444",
+			activeforeground = "#ddd",
+			activebackground = "#666",
+			compound ='left',
+			width = 8,
+			height = 2
+		)
+		self.gui_syncparams.grid(column = 0, row = 2, padx = 130, pady = 0, sticky = "nw")
+
 		# Create clear button
 		self.gui_clear = Button(window,
 			text = "Clear",
@@ -67,6 +108,8 @@ class KatOscApp:
 			border = 0,
 			fg = "#ddd",
 			bg = "#444",
+			activeforeground = "#ddd",
+			activebackground = "#666",
 			width = 16,
 			height = 2
 		)
@@ -87,6 +130,14 @@ class KatOscApp:
 		self.gui_text.insert(1.0, text)
 		self._limit_text_length()
 		self.gui_text.focus_set()
+
+
+	# Set the sync parameters
+	def set_sync_params(self, value):
+		if value == "Auto":
+			self.kat.set_sync_params(0)
+		else:
+			self.kat.set_sync_params(int(value))
 
 
 	# Limits the text length of the text box

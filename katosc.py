@@ -15,6 +15,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
+from random import random
 from threading import Timer
 from pythonosc import udp_client, osc_server, dispatcher
 import math, asyncio, threading
@@ -316,7 +317,19 @@ class KatOsc:
 			self.osc_client.send_message(self.osc_parameter_prefix + self.param_sync + str(value), 0.0) # Reset KAT characters sync
 
 		# Setup OSC Server
+		self.osc_server = False
+		self.osc_server_test_step = 0
+		self.osc_dispatcher = False
+
 		if self.osc_enable_server:
+			self.osc_start_server()
+
+		# Start timer loop
+		self.osc_timer.start()
+
+	# Starts the OSC Server
+	def osc_start_server(self):
+		if type(self.osc_server) != osc_server.ThreadingOSCUDPServer:
 			try:
 				self.osc_server_test_step = 1
 
@@ -325,13 +338,17 @@ class KatOsc:
 				self.osc_dispatcher.map(self.osc_avatar_change_path + "*", self.osc_server_handler_avatar)
 
 				self.osc_server = osc_server.ThreadingOSCUDPServer((self.osc_server_ip, self.osc_server_port), self.osc_dispatcher, asyncio.get_event_loop())
-				threading.Thread(target = self.osc_server_start, daemon = True).start()
+				threading.Thread(target = self.osc_server_serve, daemon = True).start()
 			except:
 				self.osc_enable_server = False
 				self.osc_server_test_step = 0
 
-		# Start timer loop
-		self.osc_timer.start()
+	# Stops the OSC Server
+	def osc_stop_server(self):
+		if type(self.osc_server) == osc_server.ThreadingOSCUDPServer:
+			self.osc_server.shutdown()
+			self.osc_server = False
+			self.osc_enable_server = False
 
 
 	# Set the text to any value
@@ -339,12 +356,27 @@ class KatOsc:
 		self.target_text = text
 
 
+	# Sets the sync parameter count
+	def set_sync_params(self, sync_params):
+		if sync_params == 0:
+			# Automatic sync parameters
+			self.osc_start_server()
+		else:
+			# Manual sync parameter setting
+			self.sync_params = sync_params
+			self.sync_params_last = self.sync_params
+			self.pointer_count = int(self.text_length / self.sync_params)
+
+			self.osc_server_test_step = -1 # Reset parameters and clear text
+			self.osc_stop_server()
+
+
 	# Syncronisation loop
 	def osc_timer_loop(self):
 		gui_text = self.target_text
 
 		# Test parameter count if an update is requried
-		if self.osc_enable_server:
+		if type(self.osc_server) == osc_server.ThreadingOSCUDPServer:
 			if self.osc_server_test_step > 0:
 				# Keep text cleared during test
 				self.osc_client.send_message(self.osc_parameter_prefix + self.param_pointer, self.pointer_clear)
@@ -379,8 +411,8 @@ class KatOsc:
 						self.sync_params = self.sync_params_last # Test failed, reuse last detected param count
 					else:
 						self.sync_params_last = self.sync_params
-					self.pointer_count = int(self.text_length / self.sync_params)
 					self.osc_server_test_step = 0
+					self.pointer_count = int(self.text_length / self.sync_params)
 					self.osc_text = " ".ljust(self.text_length) # Resync letters
 
 		# Do not process anything if sync parameters are not setup
@@ -388,7 +420,15 @@ class KatOsc:
 			return
 
 		# Sends clear text message if all text is empty
-		if gui_text.strip("\n").strip(" ") == "":
+		if gui_text.strip("\n").strip(" ") == "" or self.osc_server_test_step == -1:
+
+			# Reset parameters
+			if self.osc_server_test_step == -1:
+				for char_index in range(self.sync_params_max):
+					self.osc_client.send_message(self.osc_parameter_prefix + self.param_sync + str(char_index), 0.0)
+					self.osc_server_test_step = 0
+
+			# Clear text
 			self.osc_client.send_message(self.osc_parameter_prefix + self.param_pointer, self.pointer_clear)
 			self.osc_text = " ".ljust(self.text_length)
 			return
@@ -407,8 +447,8 @@ class KatOsc:
 		osc_text = self.osc_text.ljust(self.text_length)
 
 		# Text syncing
+		osc_chars = list(osc_text)
 		if gui_text != self.osc_text: # GUI text is different, needs sync
-			osc_chars = list(osc_text)
 
 			for pointer_index in range(self.pointer_count):
 				# Check if characters within this pointer are different
@@ -433,8 +473,8 @@ class KatOsc:
 		self.osc_update_pointer(pointer_index, gui_text, osc_chars)
 
 
-	# Starts the OSC server
-	def osc_server_start(self):
+	# Starts the OSC server serve
+	def osc_server_serve(self):
 		self.osc_server.serve_forever(2)
 
 
@@ -494,12 +534,14 @@ class KatOsc:
 	def stop(self):
 		self.osc_timer.stop()
 		self.hide()
+		self.osc_stop_server()
 
 
 	# Restart the timer for syncing texts and show the overlay
 	def start(self):
 		self.osc_timer.start()
 		self.show()
+		self.osc_start_server()
 
 
 	# show overlay
