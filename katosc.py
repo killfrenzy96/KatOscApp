@@ -36,11 +36,17 @@ class KatOscConfig:
 		self.line_length = 32 # Characters per line of text
 		self.line_count = 4 # Maximum lines of text
 
+		self.osc_enable_chatbox = True # Send a copy of the text to the VRChat chat box
+		self.osc_chatbox_delay = 1.25 # Delay between chatbox updates in seconds. Setting this too low will cause issues.
+
 
 class KatOsc:
 	def __init__(self, config: KatOscConfig = KatOscConfig()):
 		self.osc_ip = config.osc_ip
 		self.osc_port = config.osc_port
+
+		self.osc_enable_chatbox = config.osc_enable_chatbox
+		self.osc_chatbox_delay = config.osc_chatbox_delay
 
 		self.osc_enable_server = config.osc_enable_server
 		self.osc_server_ip = config.osc_server_ip
@@ -68,6 +74,8 @@ class KatOsc:
 
 		self.osc_parameter_prefix = "/avatar/parameters/"
 		self.osc_avatar_change_path = "/avatar/change"
+		self.osc_chatbox_path = "/chatbox/input"
+		self.osc_chatbox_text = ""
 		self.osc_text = ""
 		self.target_text = ""
 
@@ -307,6 +315,9 @@ class KatOsc:
 		# OSC Setup
 		# --------------
 
+		# Setup OSC Chatbox
+		self.osc_chatbox_timer = RepeatedTimer(self.osc_chatbox_delay, self.osc_chatbox_loop)
+
 		# Setup OSC Client
 		self.osc_client = udp_client.SimpleUDPClient(self.osc_ip, self.osc_port)
 		self.osc_timer = RepeatedTimer(self.osc_delay, self.osc_timer_loop)
@@ -325,6 +336,7 @@ class KatOsc:
 			self.osc_start_server()
 
 		# Start timer loop
+		self.osc_chatbox_timer.start()
 		self.osc_timer.start()
 
 	# Starts the OSC Server
@@ -369,6 +381,19 @@ class KatOsc:
 
 			self.osc_server_test_step = -1 # Reset parameters and clear text
 			self.osc_stop_server()
+
+
+	# Chatbox loop
+	def osc_chatbox_loop(self):
+		if self.osc_enable_chatbox == False:
+			return
+
+		gui_text = self.target_text.replace("\n", " ")
+		if self.osc_chatbox_text == gui_text:
+			return
+
+		self.osc_client.send_message(self.osc_chatbox_path, [gui_text, True])
+		self.osc_chatbox_text = gui_text
 
 
 	# Syncronisation loop
@@ -532,6 +557,7 @@ class KatOsc:
 
 	# Stop the timer and hide the text overlay
 	def stop(self):
+		self.osc_chatbox_timer.stop()
 		self.osc_timer.stop()
 		self.hide()
 		self.osc_stop_server()
@@ -539,6 +565,7 @@ class KatOsc:
 
 	# Restart the timer for syncing texts and show the overlay
 	def start(self):
+		self.osc_chatbox_timer.start()
 		self.osc_timer.start()
 		self.show()
 		self.osc_start_server()
