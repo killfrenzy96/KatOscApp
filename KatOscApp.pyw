@@ -35,7 +35,7 @@ class KatOscApp:
 		# GUI Setup
 		# --------------
 		self.window = window = Tk()
-		window.title("KillFrenzy Avatar Text OSC v1.2.4")
+		window.title("KillFrenzy Avatar Text OSC v1.3.1")
 		window.geometry("630x214")
 		window.configure(bg = "#333")
 		window.resizable(False, False)
