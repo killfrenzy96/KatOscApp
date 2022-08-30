@@ -1,9 +1,9 @@
 # KillFrenzy Avatar Text OSC App
-A simple VRChat OSC application designed for use with KillFrenzy Avatar Text
+A simple VRChat OSC application designed for use with KillFrenzy Avatar Text or VRChat chat boxes.
 ![EnableOSC](/Images/KatOscApp_Demonstration.gif)
 
 # Prerequisites
-- An avatar with KillFrenzy Avatar Text (KAT) installed. You can get it here:\
+- Optionally, an avatar with KillFrenzy Avatar Text (KAT) installed. You can get it here:\
 https://github.com/killfrenzy96/KillFrenzyAvatarText
 
 # Installation
