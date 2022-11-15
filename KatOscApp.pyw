@@ -47,9 +47,6 @@ class KatOscApp:
 			print("Warning: Could not load icon from " + filepath)
 
 		# Create text box
-		global full
-		full: bool = False
-
 		self.gui_text = Text(window,
 			font = ("Courier New", 24),
 			width = self.line_length,

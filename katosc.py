@@ -31,7 +31,7 @@ class KatOscConfig:
 		self.osc_server_port: int = 9001 # OSC network port for recieving messages
 
 		self.osc_delay: float = 0.25 # Delay between network updates in seconds. Setting this too low will cause issues.
-		self.sync_param: int = 4 # Default sync parameters. This is automatically updated if the OSC server is enabled.
+		self.sync_params: int = 4 # Default sync parameters. This is automatically updated if the OSC server is enabled.
 
 		self.line_length: int = 32 # Characters per line of text
 		self.line_count: int = 4 # Maximum lines of text
@@ -583,7 +583,7 @@ class KatOsc:
 
 
 class RepeatedTimer(object):
-	def __init__(self, interval: float, function: function, *args, **kwargs):
+	def __init__(self, interval: float, function, *args, **kwargs):
 		self._timer: Timer = None
 		self.interval = interval
 		self.function = function
