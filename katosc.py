@@ -23,21 +23,21 @@ import math, asyncio, threading
 
 class KatOscConfig:
 	def __init__(self):
-		self.osc_ip = "127.0.0.1" # OSC network IP
-		self.osc_port = 9000 # OSC network port for sending messages
+		self.osc_ip: str = "127.0.0.1" # OSC network IP
+		self.osc_port: int = 9000 # OSC network port for sending messages
 
-		self.osc_enable_server = True # Used to improve sync with in-game avatar and autodetect sync parameter count used for the avatar.
-		self.osc_server_ip = "127.0.0.1" # OSC server IP to listen too
-		self.osc_server_port = 9001 # OSC network port for recieving messages
+		self.osc_enable_server: bool = True # Used to improve sync with in-game avatar and autodetect sync parameter count used for the avatar.
+		self.osc_server_ip: str = "127.0.0.1" # OSC server IP to listen too
+		self.osc_server_port: int = 9001 # OSC network port for recieving messages
 
-		self.osc_delay = 0.25 # Delay between network updates in seconds. Setting this too low will cause issues.
-		self.sync_params = 4 # Default sync parameters. This is automatically updated if the OSC server is enabled.
+		self.osc_delay: float = 0.25 # Delay between network updates in seconds. Setting this too low will cause issues.
+		self.sync_param: int = 4 # Default sync parameters. This is automatically updated if the OSC server is enabled.
 
-		self.line_length = 32 # Characters per line of text
-		self.line_count = 4 # Maximum lines of text
+		self.line_length: int = 32 # Characters per line of text
+		self.line_count: int = 4 # Maximum lines of text
 
-		self.osc_enable_chatbox = True # Send a copy of the text to the VRChat chat box
-		self.osc_chatbox_delay = 1.25 # Delay between chatbox updates in seconds. Setting this too low will cause issues.
+		self.osc_enable_chatbox: bool = True # Send a copy of the text to the VRChat chat box
+		self.osc_chatbox_delay: float = 1.25 # Delay between chatbox updates in seconds. Setting this too low will cause issues.
 
 
 class KatOsc:
@@ -58,28 +58,28 @@ class KatOsc:
 		self.line_length = config.line_length
 		self.line_count = config.line_count
 
-		self.text_length = 128 # Maximum length of text
-		self.sync_params_max = 16 # Maximum sync parameters
-		self.sync_params_last = 4 # Last detected sync parameters
+		self.text_length: int = 128 # Maximum length of text
+		self.sync_params_max: int = 16 # Maximum sync parameters
+		self.sync_params_last: int = 4 # Last detected sync parameters
 
-		self.pointer_count = int(self.text_length / self.sync_params)
-		self.pointer_clear = 255
-		self.pointer_index_resync = 0
+		self.pointer_count: int = int(self.text_length / self.sync_params)
+		self.pointer_clear: int = 255
+		self.pointer_index_resync: int = 0
 
-		self.sync_params_test_char_value = 97 # Character value to use when testing sync parameters
+		self.sync_params_test_char_value: int = 97 # Character value to use when testing sync parameters
 
-		self.param_visible = "KAT_Visible"
-		self.param_pointer = "KAT_Pointer"
-		self.param_sync = "KAT_CharSync"
+		self.param_visible: str = "KAT_Visible"
+		self.param_pointer: str = "KAT_Pointer"
+		self.param_sync: str = "KAT_CharSync"
 
-		self.osc_parameter_prefix = "/avatar/parameters/"
-		self.osc_avatar_change_path = "/avatar/change"
-		self.osc_chatbox_path = "/chatbox/input"
-		self.osc_chatbox_text = ""
-		self.osc_text = ""
-		self.target_text = ""
+		self.osc_parameter_prefix: str = "/avatar/parameters/"
+		self.osc_avatar_change_path: str = "/avatar/change"
+		self.osc_chatbox_path: str = "/chatbox/input"
+		self.osc_chatbox_text: str = ""
+		self.osc_text: str = ""
+		self.target_text: str = ""
 
-		self.invalid_char = "?" # character used to replace invalid characters
+		self.invalid_char: str = "?" # character used to replace invalid characters
 
 		self.keys = {
 			" ": 0,
@@ -309,7 +309,7 @@ class KatOsc:
 		}
 
 		# Character to use in place of unknown characters
-		self.invalid_char_value = self.keys.get(self.invalid_char, 0)
+		self.invalid_char_value: int = self.keys.get(self.invalid_char, 0)
 
 		# --------------
 		# OSC Setup
@@ -328,9 +328,9 @@ class KatOsc:
 			self.osc_client.send_message(self.osc_parameter_prefix + self.param_sync + str(value), 0.0) # Reset KAT characters sync
 
 		# Setup OSC Server
-		self.osc_server = False
-		self.osc_server_test_step = 0
-		self.osc_dispatcher = False
+		self.osc_server: osc_server.ThreadingOSCUDPServer = None
+		self.osc_server_test_step: int = 0
+		self.osc_dispatcher: dispatcher.Dispatcher = None
 
 		if self.osc_enable_server:
 			self.osc_start_server()
@@ -341,7 +341,7 @@ class KatOsc:
 
 	# Starts the OSC Server
 	def osc_start_server(self):
-		if type(self.osc_server) != osc_server.ThreadingOSCUDPServer:
+		if self.osc_server == None:
 			try:
 				self.osc_server_test_step = 1
 
@@ -357,7 +357,7 @@ class KatOsc:
 
 	# Stops the OSC Server
 	def osc_stop_server(self):
-		if type(self.osc_server) == osc_server.ThreadingOSCUDPServer:
+		if self.osc_server != None:
 			self.osc_server.shutdown()
 			self.osc_server = False
 			self.osc_enable_server = False
@@ -369,7 +369,7 @@ class KatOsc:
 
 
 	# Sets the sync parameter count
-	def set_sync_params(self, sync_params):
+	def set_sync_params(self, sync_params: int):
 		if sync_params == 0:
 			# Automatic sync parameters
 			self.osc_start_server()
@@ -504,19 +504,19 @@ class KatOsc:
 
 
 	# Handle OSC server to detect the correct sync parameters to use
-	def osc_server_handler_char(self, address, value, *args):
+	def osc_server_handler_char(self, address: tuple[str, int], value: str, *args: list[dispatcher.Any]):
 		if self.osc_server_test_step > 0:
 			length = len(self.osc_parameter_prefix + self.param_sync)
 			self.sync_params = max(self.sync_params, int(address[length:]) + 1)
 
 
 	# Handle OSC server to retest sync on avatar change
-	def osc_server_handler_avatar(self, address, value, *args):
+	def osc_server_handler_avatar(self, address: tuple[str, int], value: str, *args: list[dispatcher.Any]):
 		self.osc_server_test_step = 1
 
 
 	# Updates the characters within a pointer
-	def osc_update_pointer(self, pointer_index, gui_text, osc_chars):
+	def osc_update_pointer(self, pointer_index: int, gui_text: str, osc_chars: list[int]):
 		self.osc_client.send_message(self.osc_parameter_prefix + self.param_pointer, pointer_index + 1) # Set pointer position
 
 		# Loop through characters within this pointer and set them
@@ -583,13 +583,13 @@ class KatOsc:
 
 
 class RepeatedTimer(object):
-	def __init__(self, interval, function, *args, **kwargs):
-		self._timer     = None
-		self.interval   = interval
-		self.function   = function
-		self.args       = args
-		self.kwargs     = kwargs
-		self.is_running = False
+	def __init__(self, interval: float, function: function, *args, **kwargs):
+		self._timer: Timer = None
+		self.interval = interval
+		self.function = function
+		self.args = args
+		self.kwargs = kwargs
+		self.is_running: bool = False
 		self.start()
 
 	def _run(self):

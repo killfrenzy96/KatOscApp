@@ -48,7 +48,7 @@ class KatOscApp:
 
 		# Create text box
 		global full
-		full = False
+		full: bool = False
 
 		self.gui_text = Text(window,
 			font = ("Courier New", 24),
@@ -191,7 +191,7 @@ class KatOscApp:
 			text_lines = text_lines[:-1]
 
 		# Calculate effective text length
-		length_padded = 0
+		length_padded: int = 0
 		for index, text in enumerate(text_lines):
 			if index == len(text_lines) - 1: # Do not add padding to the last line
 				length_padded += len(text)
