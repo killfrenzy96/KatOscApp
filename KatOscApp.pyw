@@ -72,7 +72,7 @@ class KatOscApp:
 			width = 16,
 			height = 2
 		)
-		self.gui_syncparams_label.grid(column = 0, row = 2, padx = 10, pady = 0, sticky = "nw")
+		self.gui_syncparams_label.grid(column = 0, row = 2, padx = (10, 0), pady = 0, sticky = "nw")
 
 		# Create sync parameter options
 		self.gui_syncparams_options = ["Auto", "1", "2", "4", "8", "16"]
@@ -99,7 +99,35 @@ class KatOscApp:
 			width = 8,
 			height = 2
 		)
-		self.gui_syncparams.grid(column = 0, row = 2, padx = 130, pady = 0, sticky = "nw")
+		self.gui_syncparams.grid(column = 0, row = 2, padx = (130, 0), pady = 0, sticky = "nw")
+
+		# Create chatbox toggle label
+		self.gui_chatbox_label = Label(window,
+			text = "Use VRC Chatbox",
+			border = 3,
+			fg = "#ddd",
+			bg = "#393939",
+			width = 16,
+			height = 2
+		)
+		self.gui_chatbox_label.grid(column = 0, row = 2, padx = (200, 0), pady = 0, sticky = "nw")
+
+		# Create chatbox toggle button
+		self.gui_chatbox_value = StringVar(window)
+		self.gui_chatbox_value.set("On") # initial value
+
+		self.gui_chatbox_button = Button(window,
+			textvariable = self.gui_chatbox_value,
+			command = lambda:self.toggle_osc_chatbox(),
+			border = 0,
+			fg = "#ddd",
+			bg = "#444",
+			activeforeground = "#ddd",
+			activebackground = "#666",
+			width = 8,
+			height = 2
+		)
+		self.gui_chatbox_button.grid(column = 0, row = 2, padx = (320, 0), pady = 0, sticky = "nw")
 
 		# Create clear button
 		self.gui_clear = Button(window,
@@ -113,7 +141,7 @@ class KatOscApp:
 			width = 16,
 			height = 2
 		)
-		self.gui_clear.grid(column = 0, row = 2, padx = 10, pady = 0, sticky = "ne")
+		self.gui_clear.grid(column = 0, row = 2, padx = (0, 10), pady = 0, sticky = "ne")
 
 		# Start App
 		self.window.mainloop()
@@ -138,6 +166,15 @@ class KatOscApp:
 			self.kat.set_sync_params(0)
 		else:
 			self.kat.set_sync_params(int(value))
+
+
+	def toggle_osc_chatbox(self):
+		if self.kat.osc_enable_chatbox:
+			self.gui_chatbox_value.set("Off")
+			self.kat.osc_enable_chatbox = False
+		else:
+			self.gui_chatbox_value.set("On")
+			self.kat.osc_enable_chatbox = True
 
 
 	# Limits the text length of the text box
